@@ -4,6 +4,7 @@
 	import { onMount, tick } from 'svelte';
 	import { goto } from '$app/navigation';
 	export let data;
+	let pageTitle = `Gestion des tournages - ${data.appName}`;
 
 	// État réactif pour les tournages
 	let tournages = data.tournages;
@@ -320,6 +321,13 @@
 
 	// Imports déplacés en haut du fichier
 </script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+	<meta name="description" content="Gérez vos tournages vidéo" />
+	<meta property="og:title" content={pageTitle} />
+	<meta property="og:description" content="Gérez vos tournages vidéo" />
+</svelte:head>
 
 <Navbar user={data.user} />
 

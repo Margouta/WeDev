@@ -1,3 +1,14 @@
+<script>
+	export let data;
+	let pageTitle = `Connexion - ${data.appName}`;
+</script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+	<meta name="description" content="Se connecter avec Discord" />
+	<meta property="og:title" content={pageTitle} />
+</svelte:head>
+
 <div class="page page-center">
 	<div class="container container-tight py-4">
 		<div class="text-center mb-4">

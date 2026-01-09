@@ -3,6 +3,7 @@
 	import Uploader from '../../components/uploader.svelte';
 
 	export let data;
+	let pageTitle = `Dashboard - ${data.appName}`;
 
 	export let user = null;
 
@@ -13,6 +14,11 @@
 	$: selectedTournage = tournages.find((t) => String(t.id) === String(selectedId));
 	$: statusInfo = selectedTournage ? getStatusInfo(selectedTournage) : null;
 	$: timingInfo = selectedTournage ? getTimingInfo(selectedTournage) : null;
+	$: {
+		if (selectedTournage) {
+			pageTitle = `${selectedTournage.name} - ${data.appName}`;
+		}
+	}
 	$: hasMultiple = tournages.length > 1;
 	$: previousProject = selectedTournage?.previous_rendu || null;
 	$: canDownloadPrevious = selectedTournage && 
@@ -124,6 +130,13 @@
 		return { text: `Terminé il y a ${formatDuration(-toEnd)}` };
 	}
 </script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+	<meta name="description" content="Dashboard de vos tournages en cours" />
+	<meta property="og:title" content={pageTitle} />
+	<meta property="og:description" content="Dashboard de vos tournages en cours" />
+</svelte:head>
 
 <Navbar user={data.user} />
 {#if !selectedTournage}
@@ -837,11 +850,12 @@
 											src="https://tally.so/embed/{selectedTournage.form}?alignLeft=1&hideTitle=0&transparentBackground=0&dynamicHeight=0"
 											loading="lazy"
 											width="100%"
-											height="350"
+											height="350px"
 											frameborder="0"
 											marginheight="0"
 											marginwidth="0"
 											title="Formulaire"
+											class="rounded"
 										></iframe>
 									</div>
 								</div>
@@ -906,3 +920,15 @@
 		</div>
 	</div>
 {/if}
+
+<style>
+	.brief-content :global(*:first-child) {
+		margin-left: 0 !important;
+		padding-left: 0 !important;
+	}
+	
+	.brief-content :global(ul),
+	.brief-content :global(ol) {
+		padding-left: 1.5rem;
+	}
+</style>

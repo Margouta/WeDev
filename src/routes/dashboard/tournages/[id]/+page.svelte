@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	export let data;
 	export let form;
+	let pageTitle = `${data.tournage.name} - ${data.appName}`;
 
 	let isSubmitting = false;
 	let editingMember = null;
@@ -30,6 +31,13 @@
 		return { label: 'Prêt', color: 'bg-info' };
 	}
 </script>
+
+<svelte:head>
+	<title>{pageTitle}</title>
+	<meta name="description" content="Gestion des passages et membres de {data.tournage.name}" />
+	<meta property="og:title" content={pageTitle} />
+	<meta property="og:description" content="Gestion des passages et membres" />
+</svelte:head>
 
 <Navbar user={data.user} />
 
