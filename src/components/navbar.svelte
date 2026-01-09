@@ -241,3 +241,13 @@
 		</div>
 	</div>
 </header>
+
+<style>
+	/* Force le logo en blanc complet en mode sombre */
+	:global([data-bs-theme='dark'] .navbar-brand svg path) {
+		stroke: #ffffff !important;
+	}
+	:global([data-bs-theme='dark'] .navbar-brand svg [fill]) {
+		fill: #ffffff !important;
+	}
+</style>

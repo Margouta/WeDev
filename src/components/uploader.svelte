@@ -3,6 +3,7 @@
 	import Dashboard from '@uppy/dashboard';
 	import XHR from '@uppy/xhr-upload';
 	import { onMount } from 'svelte';
+	import { theme } from '$lib/stores/theme';
 
 	import '@uppy/core/css/style.min.css';
 	import '@uppy/dashboard/css/style.min.css';
@@ -48,7 +49,9 @@
 			target: '#uppy-dashboard',
 			proudlyDisplayPoweredByUppy: true,
 			note: getNote(),
-			disabled: effectiveDisabled
+			disabled: effectiveDisabled,
+			// Sync Uppy theme with app theme (dark/light)
+			theme: ($theme === 'dark' ? 'dark' : 'light')
 		});
 
 		uppyInstance.use(XHR, {
@@ -85,7 +88,11 @@
 	$: if (uppyInstance) {
 		const dashboard = uppyInstance.getPlugin('Dashboard');
 		if (dashboard) {
-			dashboard.setOptions({ disabled: effectiveDisabled, note: getNote() });
+			dashboard.setOptions({
+				disabled: effectiveDisabled,
+				note: getNote(),
+				theme: ($theme === 'dark' ? 'dark' : 'light')
+			});
 		}
 	}
 </script>

@@ -920,15 +920,3 @@
 		</div>
 	</div>
 {/if}
-
-<style>
-	.brief-content :global(*:first-child) {
-		margin-left: 0 !important;
-		padding-left: 0 !important;
-	}
-	
-	.brief-content :global(ul),
-	.brief-content :global(ol) {
-		padding-left: 1.5rem;
-	}
-</style>

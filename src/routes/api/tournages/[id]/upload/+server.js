@@ -50,6 +50,30 @@ export const POST = async ({ request, params, locals }) => {
 
     const drive = google.drive({ version: 'v3', auth });
 
+    // Déterminer le numéro de passage de l'utilisateur pour ce tournage
+    const [rankRows] = await db.query(`
+      SELECT passage_number FROM (
+        SELECT p.discord_id,
+               ROW_NUMBER() OVER (ORDER BY p.start_time ASC, p.id ASC) AS passage_number
+        FROM passage p
+        WHERE p.tournages_id = ?
+      ) ranked
+      WHERE ranked.discord_id = ?
+    `, [id, locals.user.discord_id]);
+
+    const passageNumber = (rankRows && rankRows[0] && rankRows[0].passage_number) ? rankRows[0].passage_number : 0;
+
+    // Construire un nom de fichier avec préfixe "numéroDePassage_username"
+    const baseUsername = locals.user.username || locals.user.displayname || 'user';
+    const safeUsername = baseUsername
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_-]/g, '');
+
+    const prefixedName = `${passageNumber}_${safeUsername}_${file.name}`;
+
     // Convertir le fichier en buffer puis en stream
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -58,7 +82,7 @@ export const POST = async ({ request, params, locals }) => {
     // Upload vers Google Drive
     const response = await drive.files.create({
       requestBody: {
-        name: file.name,
+        name: prefixedName,
         parents: [folderId]
       },
       media: {
@@ -82,7 +106,7 @@ export const POST = async ({ request, params, locals }) => {
     });
 
     console.log('Upload réussi vers Google Drive:', {
-      filename: file.name,
+      filename: prefixedName,
       fileId: fileId,
       size: file.size,
       shared: 'public (reader)'
