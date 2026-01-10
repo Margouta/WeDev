@@ -9,15 +9,14 @@
 	import '@uppy/dashboard/css/style.min.css';
 
 	export let tournage = null;
-	export let disabled = false; // désactive l'upload (ex: déjà soumis)
+	export let disabled = false;
 
 	let uppyInstance;
-	let localDisabled = false; // se bloque localement après un succès
+	let localDisabled = false;
 
 	const getNote = () => {
 		if (!tournage?.drive) return 'Configurez un dossier Drive pour ce tournage';
 		
-		// Vérifier si le passage a commencé
 		const now = new Date();
 		const startTime = tournage?.start_time ? new Date(tournage.start_time) : null;
 		if (startTime && startTime > now) {
@@ -50,7 +49,6 @@
 			proudlyDisplayPoweredByUppy: true,
 			note: getNote(),
 			disabled: effectiveDisabled,
-			// Sync Uppy theme with app theme (dark/light)
 			theme: ($theme === 'dark' ? 'dark' : 'light')
 		});
 
@@ -63,7 +61,7 @@
 
 		uppyInstance.on('upload-success', (file, response) => {
 			console.log('Upload réussi:', file.name, response.body);
-			localDisabled = true; // bloque les prochains uploads dans la session
+			localDisabled = true;
 		});
 
 		uppyInstance.on('upload-error', (file, error) => {
@@ -73,7 +71,6 @@
 		return () => {
 			if (!uppyInstance) return;
 
-			// Some Uppy versions do not expose close(), so guard to avoid runtime errors
 			if (typeof uppyInstance.close === 'function') {
 				uppyInstance.close({ reason: 'component-unmount' });
 			} else {
@@ -91,31 +88,10 @@
 			dashboard.setOptions({
 				disabled: effectiveDisabled,
 				note: getNote(),
-				theme: ($theme === 'dark' ? 'dark' : 'light')
+				theme: ($theme === 'dark' ? 'dark' : 'light'),
+				width: "100%"
 			});
 		}
 	}
 </script>
-
 <div id="uppy-dashboard"></div>
-<style>
-	#uppy-dashboard {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		min-height: 0;
-	}
-
-	:global(#uppy-dashboard .uppy-Dashboard) {
-		height: 100% !important;
-		min-height: 350px;
-	}
-
-	:global(#uppy-dashboard .uppy-Dashboard-inner) {
-		height: 100% !important;
-	}
-
-	:global(#uppy-dashboard .uppy-DashboardContent) {
-		height: 100%;
-	}
-</style>

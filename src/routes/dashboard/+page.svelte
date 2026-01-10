@@ -10,6 +10,7 @@
 	const tournages = data.tournages ?? [];
 	let selectedId = tournages[0]?.id ? String(tournages[0].id) : null;
 	let isUpdatingCgu = false;
+	let activeTab = 'brief';
 
 	$: selectedTournage = tournages.find((t) => String(t.id) === String(selectedId));
 	$: statusInfo = selectedTournage ? getStatusInfo(selectedTournage) : null;
@@ -21,9 +22,10 @@
 	}
 	$: hasMultiple = tournages.length > 1;
 	$: previousProject = selectedTournage?.previous_rendu || null;
-	$: canDownloadPrevious = selectedTournage && 
-		selectedTournage.passage_number > 1 && 
-		passageStarted && 
+	$: canDownloadPrevious =
+		selectedTournage &&
+		selectedTournage.passage_number > 1 &&
+		passageStarted &&
 		!passageEnded &&
 		previousProject;
 
@@ -734,22 +736,6 @@
 					<div class="col-sm-6 col-lg-3">
 						<div class="card">
 							<div class="card-body">
-								<div class="subheader">Ordre de passage</div>
-								<div class="d-flex align-items-baseline">
-									<div class="h1 mb-0 me-2">N°{selectedTournage.passage_number}</div>
-								</div>
-								<div class="text-secondary mt-2">
-									Du {formatDate(selectedTournage.start_time)} au {formatDate(
-										selectedTournage.end_time
-									)}
-								</div>
-								<div class="text-secondary mt-2">{timingInfo?.text ?? '—'}</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-6 col-lg-3">
-						<div class="card">
-							<div class="card-body">
 								<div class="ribbon ribbon-top bg-danger">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -817,101 +803,1016 @@
 					{#if selectedTournage.cgu === 1}
 						<div class="col-12">
 							<div class="card">
-								<div class="card-stamp">
-									<div class="card-stamp-icon bg-primary">
-										<svg
-											xmlns="http://www.w3.org/2000/svg"
-											width="24"
-											height="24"
-											viewBox="0 0 24 24"
-											fill="currentColor"
-											class="icon icon-tabler icons-tabler-filled icon-tabler-clipboard-text"
-											><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
-												d="M17.997 4.17a3 3 0 0 1 2.003 2.83v12a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 2.003 -2.83a4 4 0 0 0 3.997 3.83h4a4 4 0 0 0 3.98 -3.597zm-2.997 10.83h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0 -2m0 -4h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0 -2m-1 -9a2 2 0 1 1 0 4h-4a2 2 0 1 1 0 -4z"
-											/></svg
-										>
-									</div>
-								</div>
-
 								<div class="card-header">
-									<h3 class="card-title">Brief</h3>
-								</div>
-								<div class="card-body">
-									{@html selectedTournage.brief}
-								</div>
-							</div>
-						</div>
-						{#if selectedTournage.form}
-							<div class="col-sm-12 col-lg-6">
-								<div class="card h-100">
-									<div class="card-body rounded">
-										<!-- svelte-ignore a11y_missing_attribute -->
-										<iframe
-											src="https://tally.so/embed/{selectedTournage.form}?alignLeft=1&hideTitle=0&transparentBackground=0&dynamicHeight=0"
-											loading="lazy"
-											width="100%"
-											height="350px"
-											frameborder="0"
-											marginheight="0"
-											marginwidth="0"
-											title="Formulaire"
-											class="rounded"
-										></iframe>
-									</div>
-								</div>
-							</div>
-						{/if}
-						<div class="col-md-12 col-lg-4">
-							<div class="card h-100 d-flex flex-column">
-								<div class="card-header">
-									<h3 class="card-title">Rendu du projet</h3>
+									<ul class="nav nav-tabs card-header-tabs">
+										<li class="nav-item">
+											<button
+												class="nav-link"
+												class:active={activeTab === 'brief'}
+												on:click={() => (activeTab = 'brief')}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="icon me-2"
+													><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+														d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"
+													/><path
+														d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"
+													/><path d="M9 12l.01 0" /><path d="M13 12l2 0" /><path
+														d="M9 16l.01 0"
+													/><path d="M13 16l2 0" /></svg
+												>
+												Brief
+											</button>
+										</li>
+										<li class="nav-item">
+											<button
+												class="nav-link"
+												class:active={activeTab === 'passage'}
+												on:click={() => (activeTab = 'passage')}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="icon me-2"
+													><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+														d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"
+													/><path d="M12 7v5l3 3" /></svg
+												>
+												Votre passage
+											</button>
+										</li>
+										<li class="nav-item">
+											<button
+												class="nav-link"
+												class:active={activeTab === 'rendu'}
+												on:click={() => (activeTab = 'rendu')}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="icon me-2"
+													><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+														d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"
+													/><path d="M7 9l5 -5l5 5" /><path d="M12 4v12" /></svg
+												>
+												Rendre le projet
+											</button>
+										</li>
+										<li class="nav-item">
+											<button
+												class="nav-link"
+												class:active={activeTab === 'recap'}
+												on:click={() => (activeTab = 'recap')}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="icon me-2"
+													><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+														d="M12 3a3 3 0 0 0 -3 3v12a3 3 0 0 0 3 3"
+													/><path d="M6 3a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3" /><path
+														d="M13 7h7a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-7"
+													/><path d="M5 7h-1a1 1 0 0 0 -1 1v8a1 1 0 0 0 1 1h1" /><path
+														d="M17 12h.01"
+													/><path d="M13 12h.01" /></svg
+												>
+												Récap de fin
+											</button>
+										</li>
+										<li class="nav-item">
+											<button
+												class="nav-link"
+												class:active={activeTab === 'faq'}
+												on:click={() => (activeTab = 'faq')}
+											>
+												<svg
+													xmlns="http://www.w3.org/2000/svg"
+													width="24"
+													height="24"
+													viewBox="0 0 24 24"
+													fill="none"
+													stroke="currentColor"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													class="icon me-2"
+													><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+														d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"
+													/><path d="M12 19V17.5" /><path d="M12 5V3" /></svg
+												>
+												FAQ
+											</button>
+										</li>
+									</ul>
 								</div>
 								<div
-									class="card-body p-0 flex-fill"
-									style="overflow: hidden; display: flex; flex-direction: column;"
+									class="card-body"
+									style="display: flex; flex-direction: column; min-height: 600px; flex: 1;"
 								>
-									<Uploader tournage={selectedTournage} disabled={uploadDisabled} />
-								</div>
-							</div>
-						</div>
-						<div class="col-md-12 col-lg-2">
-							<div class="card h-100 d-flex flex-column">
-								<div class="card-header">
-									<h3 class="card-title">Projet précédent</h3>
-								</div>
-								<div class="card-body d-flex flex-column justify-content-center align-items-center">
-									{#if canDownloadPrevious}
-										<div class="text-center">
-											<p class="text-secondary mb-3">Cliquez sur le bouton ci-dessous pour télécharger le projet précédent</p>
-											<a href={previousProject} target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-												<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download me-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 3v12" /></svg>
-												Télécharger
-											</a>
-										</div>
-									{:else if selectedTournage.passage_number === 1}
-										<div class="text-center text-muted">
-											<p>Vous êtes le premier passage, il n'y a donc rien à télécharger !</p>
-										</div>
-									{:else if !passageStarted}
-										<div class="text-center text-muted">
-											<p>Disponible à partir du début de votre créneau</p>
-										</div>
-									{:else if passageEnded}
-										<div class="text-center text-muted">
-											<p>Votre créneau est terminé</p>
-										</div>
-									{:else}
-										<div class="text-center text-muted">
-											<p>Le projet précédent n'est pas disponible</p>
-										</div>
-									{/if}
+									<div
+										class="tab-content"
+										style="display: flex; flex-direction: column; flex: 1; height: 100%;"
+									>
+										<!-- Onglet Brief -->
+										{#if activeTab === 'brief'}
+											<div class="tab-pane active">
+												<div class="card-stamp">
+													<div class="card-stamp-icon bg-primary">
+														<svg
+															xmlns="http://www.w3.org/2000/svg"
+															width="24"
+															height="24"
+															viewBox="0 0 24 24"
+															fill="currentColor"
+															class="icon icon-tabler icons-tabler-filled icon-tabler-clipboard-text"
+															><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																d="M17.997 4.17a3 3 0 0 1 2.003 2.83v12a3 3 0 0 1 -3 3h-10a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 2.003 -2.83a4 4 0 0 0 3.997 3.83h4a4 4 0 0 0 3.98 -3.597zm-2.997 10.83h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0 -2m0 -4h-6a1 1 0 0 0 0 2h6a1 1 0 0 0 0 -2m-1 -9a2 2 0 1 1 0 4h-4a2 2 0 1 1 0 -4z"
+															/></svg
+														>
+													</div>
+												</div>
+												{@html selectedTournage.brief}
+											</div>
+										{/if}
+
+										<!-- Onglet Votre passage -->
+										{#if activeTab === 'passage'}
+											<div class="tab-pane active">
+												<div class="row">
+													<div class="col-md-12 col-lg-6">
+														<div class="card mb-3">
+															<div class="card-header">
+																<h3 class="card-title">Informations sur votre créneau</h3>
+															</div>
+															<div class="card-body">
+																<div class="mb-3">
+																	<div class="subheader">Ordre de passage</div>
+																	<div class="h2">N°{selectedTournage.passage_number}</div>
+																</div>
+																<div class="mb-3">
+																	<div class="subheader">Période</div>
+																	<div class="text-secondary">
+																		Du {formatDateTime(selectedTournage.start_time)} au {formatDateTime(
+																			selectedTournage.end_time
+																		)}
+																	</div>
+																</div>
+																<div class="mb-3">
+																	<div class="subheader">Statut</div>
+																	<div class="mt-2">
+																		{#if statusInfo}
+																			<span class="badge {statusInfo.color}"
+																				>{statusInfo.label}</span
+																			>
+																		{/if}
+																	</div>
+																</div>
+																{#if timingInfo}
+																	<div class="alert alert-info mb-0">
+																		<div class="d-flex align-items-center">
+																			<svg
+																				xmlns="http://www.w3.org/2000/svg"
+																				width="24"
+																				height="24"
+																				viewBox="0 0 24 24"
+																				fill="none"
+																				stroke="currentColor"
+																				stroke-width="2"
+																				stroke-linecap="round"
+																				stroke-linejoin="round"
+																				class="icon icon-tabler icons-tabler-outline icon-tabler-clock me-2"
+																				><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																					d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"
+																				/><path d="M12 7v5l3 3" /></svg
+																			>
+																			<strong>{timingInfo.text}</strong>
+																		</div>
+																	</div>
+																{/if}
+															</div>
+														</div>
+													</div>
+													<div class="col-md-12 col-lg-6">
+														<div class="card mb-3">
+															<div class="card-header">
+																<h3 class="card-title">Projet précédent</h3>
+															</div>
+															<div
+																class="card-body d-flex flex-column justify-content-center align-items-center"
+																style="min-height: 200px;"
+															>
+																{#if canDownloadPrevious}
+																	<div class="text-center">
+																		<p class="text-secondary mb-3">
+																			Cliquez sur le bouton ci-dessous pour télécharger le projet du
+																			passage précédent
+																		</p>
+																		<a
+																			href={previousProject}
+																			target="_blank"
+																			rel="noopener noreferrer"
+																			class="btn btn-primary btn-lg"
+																		>
+																			<svg
+																				xmlns="http://www.w3.org/2000/svg"
+																				width="24"
+																				height="24"
+																				viewBox="0 0 24 24"
+																				fill="none"
+																				stroke="currentColor"
+																				stroke-width="2"
+																				stroke-linecap="round"
+																				stroke-linejoin="round"
+																				class="icon icon-tabler icons-tabler-outline icon-tabler-download me-2"
+																				><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																					d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"
+																				/><path d="M7 11l5 5l5 -5" /><path d="M12 3v12" /></svg
+																			>
+																			Télécharger le projet
+																		</a>
+																	</div>
+																{:else if selectedTournage.passage_number === 1}
+																	<div class="text-center text-muted">
+																		<svg
+																			xmlns="http://www.w3.org/2000/svg"
+																			width="48"
+																			height="48"
+																			viewBox="0 0 24 24"
+																			fill="none"
+																			stroke="currentColor"
+																			stroke-width="2"
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			class="icon icon-tabler icons-tabler-outline icon-tabler-trophy mb-3"
+																			><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																				d="M8 21l8 0"
+																			/><path d="M12 17l0 4" /><path d="M7 4l10 0" /><path
+																				d="M17 4v8a5 5 0 0 1 -10 0v-8"
+																			/><path d="M5 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path
+																				d="M19 9m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"
+																			/></svg
+																		>
+																		<p>Vous êtes le premier passage !</p>
+																		<p class="small">Il n'y a donc rien à télécharger.</p>
+																	</div>
+																{:else if !passageStarted}
+																	<div class="text-center text-muted">
+																		<svg
+																			xmlns="http://www.w3.org/2000/svg"
+																			width="48"
+																			height="48"
+																			viewBox="0 0 24 24"
+																			fill="none"
+																			stroke="currentColor"
+																			stroke-width="2"
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			class="icon icon-tabler icons-tabler-outline icon-tabler-lock mb-3"
+																			><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																				d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"
+																			/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path
+																				d="M8 11v-4a4 4 0 1 1 8 0v4"
+																			/></svg
+																		>
+																		<p>Projet non disponible</p>
+																		<p class="small">
+																			Le projet sera disponible dès le début de votre créneau.
+																		</p>
+																	</div>
+																{:else if passageEnded}
+																	<div class="text-center text-muted">
+																		<svg
+																			xmlns="http://www.w3.org/2000/svg"
+																			width="48"
+																			height="48"
+																			viewBox="0 0 24 24"
+																			fill="none"
+																			stroke="currentColor"
+																			stroke-width="2"
+																			stroke-linecap="round"
+																			stroke-linejoin="round"
+																			class="icon icon-tabler icons-tabler-outline icon-tabler-clock-off mb-3"
+																			><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																				d="M5.633 5.64a9 9 0 1 0 12.735 12.72m1.674 -2.32a9 9 0 0 0 -12.082 -12.082"
+																			/><path d="M12 7v1" /><path d="M3 3l18 18" /></svg
+																		>
+																		<p>Créneau terminé</p>
+																		<p class="small">Votre temps de passage est écoulé.</p>
+																	</div>
+																{:else}
+																	<div class="text-center text-muted">
+																		<p>Le projet précédent n'est pas disponible</p>
+																	</div>
+																{/if}
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										{/if}
+
+										<!-- Onglet Rendre le projet -->
+										{#if activeTab === 'rendu'}
+											<div
+												class="tab-pane active"
+												style="display: flex; flex-direction: column; flex: 1;"
+											>
+												<Uploader tournage={selectedTournage} disabled={uploadDisabled} />
+											</div>
+										{/if}
+
+										<!-- Onglet Récap de fin -->
+										{#if activeTab === 'recap'}
+											<div class="tab-pane active">
+												{#if selectedTournage.form}
+													<div class="alert alert-important alert-warning mb-4">
+														<div class="d-flex align-items-center">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																width="24"
+																height="24"
+																viewBox="0 0 24 24"
+																fill="currentColor"
+																class="icon icon-tabler icons-tabler-filled icon-tabler-alert-triangle me-2"
+																><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																	d="M12 1.67c.955 0 1.845 .467 2.39 1.247l.105 .16l8.114 13.548a2.914 2.914 0 0 1 -2.307 4.363l-.195 .008h-16.225a2.914 2.914 0 0 1 -2.582 -4.2l.099 -.185l8.11 -13.538a2.914 2.914 0 0 1 2.491 -1.403zm.01 13.33l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007zm-.01 -7a1 1 0 0 0 -.993 .883l-.007 .117v4l.007 .117a1 1 0 0 0 1.986 0l.007 -.117v-4l-.007 -.117a1 1 0 0 0 -.993 -.883z"
+																/></svg
+															>
+															<div>
+																<strong>Important !</strong> Remplissez ce formulaire de récapitulatif
+																à la fin de votre passage.
+															</div>
+														</div>
+													</div>
+													<div class="card">
+														<div class="card-body rounded" style="min-height: 600px;">
+															<!-- svelte-ignore a11y_missing_attribute -->
+															<iframe
+																data-tally-src="https://tally.so/embed/{selectedTournage.form}?alignLeft=1&hideTitle=0&transparentBackground=0&dynamicHeight=1"
+																loading="lazy"
+																width="100%"
+																height="100%"
+																frameborder="0"
+																marginheight="0"
+																marginwidth="0"
+																title="Formulaire de récapitulatif"
+																class="rounded"
+																style="min-height: 600px;"
+															></iframe>
+															<script>
+																var d = document,
+																	w = 'https://tally.so/widgets/embed.js',
+																	v = function () {
+																		'undefined' != typeof Tally
+																			? Tally.loadEmbeds()
+																			: d
+																					.querySelectorAll('iframe[data-tally-src]:not([src])')
+																					.forEach(function (e) {
+																						e.src = e.dataset.tallySrc;
+																					});
+																	};
+																if ('undefined' != typeof Tally) v();
+																else if (d.querySelector('script[src="' + w + '"]') == null) {
+																	var s = d.createElement('script');
+																	((s.src = w),
+																		(s.onload = v),
+																		(s.onerror = v),
+																		d.body.appendChild(s));
+																}
+															</script>
+														</div>
+													</div>
+												{:else}
+													<div class="empty">
+														<div class="empty-icon">
+															<svg
+																xmlns="http://www.w3.org/2000/svg"
+																width="48"
+																height="48"
+																viewBox="0 0 24 24"
+																fill="none"
+																stroke="currentColor"
+																stroke-width="2"
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																class="icon icon-tabler icons-tabler-outline icon-tabler-forms"
+																><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+																	d="M12 3a3 3 0 0 0 -3 3v12a3 3 0 0 0 3 3"
+																/><path d="M6 3a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3" /><path
+																	d="M13 7h7a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-7"
+																/><path d="M5 7h-1a1 1 0 0 0 -1 1v8a1 1 0 0 0 1 1h1" /><path
+																	d="M17 12h.01"
+																/><path d="M13 12h.01" /></svg
+															>
+														</div>
+														<p class="empty-title">Aucun formulaire disponible</p>
+														<p class="empty-subtitle text-secondary">
+															Aucun formulaire de récapitulatif n'a été configuré pour cette
+															édition.
+														</p>
+													</div>
+												{/if}
+											</div>
+										{/if}
+
+										<!-- Onglet FAQ -->
+										{#if activeTab === 'faq'}
+											<div class="tab-pane active">
+												<div class="card-body">
+													<div class="space-y-4">
+														<div>
+															<h2 class="mb-3">1. Introduction</h2>
+															<div
+																id="faq-1"
+																class="accordion accordion-tabs"
+																role="tablist"
+																aria-multiselectable="true"
+															>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-1-1"
+																			role="tab"
+																		>
+																			Welcome to our service!
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-1-1"
+																		class="accordion-collapse collapse show"
+																		role="tabpanel"
+																		data-bs-parent="#faq-1"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-1-2"
+																			role="tab"
+																		>
+																			Who are we?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-1-2"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-1"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-1-3"
+																			role="tab"
+																		>
+																			What are our values?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-1-3"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-1"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+														<div>
+															<h2 class="mb-3">2. Functionality</h2>
+															<div
+																id="faq-2"
+																class="accordion accordion-tabs"
+																role="tablist"
+																aria-multiselectable="true"
+															>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-2-1"
+																			role="tab"
+																		>
+																			What are the key features?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-2-1"
+																		class="accordion-collapse collapse show"
+																		role="tabpanel"
+																		data-bs-parent="#faq-2"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-2-2"
+																			role="tab"
+																		>
+																			Does your App support mobile devices?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-2-2"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-2"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-2-3"
+																			role="tab"
+																		>
+																			Why should I choose your service?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-2-3"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-2"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-2-4"
+																			role="tab"
+																		>
+																			Is my data secure?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-2-4"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-2"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+														<div>
+															<h2 class="mb-3">3. Payments</h2>
+															<div
+																id="faq-3"
+																class="accordion accordion-tabs"
+																role="tablist"
+																aria-multiselectable="true"
+															>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-3-1"
+																			role="tab"
+																		>
+																			Is there any free plan?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-3-1"
+																		class="accordion-collapse collapse show"
+																		role="tabpanel"
+																		data-bs-parent="#faq-3"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-3-2"
+																			role="tab"
+																		>
+																			What are the available payment options?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-3-2"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-3"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+																<div class="accordion-item">
+																	<div class="accordion-header">
+																		<button
+																			class="accordion-button collapsed"
+																			data-bs-toggle="collapse"
+																			data-bs-target="#faq-3-3"
+																			role="tab"
+																		>
+																			Can I get a refund?
+																			<div class="accordion-button-toggle">
+																				<!-- Download SVG icon from http://tabler.io/icons/icon/chevron-down -->
+																				<svg
+																					xmlns="http://www.w3.org/2000/svg"
+																					width="24"
+																					height="24"
+																					viewBox="0 0 24 24"
+																					fill="none"
+																					stroke="currentColor"
+																					stroke-width="2"
+																					stroke-linecap="round"
+																					stroke-linejoin="round"
+																					class="icon icon-1"
+																				>
+																					<path d="M6 9l6 6l6 -6"></path>
+																				</svg>
+																			</div>
+																		</button>
+																	</div>
+																	<div
+																		id="faq-3-3"
+																		class="accordion-collapse collapse"
+																		role="tabpanel"
+																		data-bs-parent="#faq-3"
+																	>
+																		<div class="accordion-body pt-0">
+																			<div>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																				<p>
+																					Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+																					Accusantium alias dignissimos dolorum ea est eveniet,
+																					excepturi illum in iste iure maiores nemo recusandae rerum
+																					saepe sed, sunt totam! Explicabo, ipsa?
+																				</p>
+																			</div>
+																		</div>
+																	</div>
+																</div>
+															</div>
+														</div>
+													</div>
+												</div>
+											</div>
+										{/if}
+									</div>
 								</div>
 							</div>
 						</div>
 					{:else}
 						<div class="col-12">
 							<div class="alert alert-warning">
-								<strong>Attention :</strong> Vous devez accepter les conditions pour pouvoir accèder au reste de la page.
+								<strong>Attention :</strong> Vous devez accepter les conditions pour pouvoir accèder au
+								reste de la page.
 							</div>
 						</div>
 					{/if}
