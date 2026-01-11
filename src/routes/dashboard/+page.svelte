@@ -1,4 +1,5 @@
 <script>
+	import { onMount, onDestroy } from 'svelte';
 	import Navbar from '../../components/navbar.svelte';
 	import Uploader from '../../components/uploader.svelte';
 
@@ -11,10 +12,22 @@
 	let selectedId = tournages[0]?.id ? String(tournages[0].id) : null;
 	let isUpdatingCgu = false;
 	let activeTab = 'brief';
+	let currentTime = new Date();
+	let interval;
+
+	onMount(() => {
+		interval = setInterval(() => {
+			currentTime = new Date();
+		}, 1000);
+	});
+
+	onDestroy(() => {
+		if (interval) clearInterval(interval);
+	});
 
 	$: selectedTournage = tournages.find((t) => String(t.id) === String(selectedId));
-	$: statusInfo = selectedTournage ? getStatusInfo(selectedTournage) : null;
-	$: timingInfo = selectedTournage ? getTimingInfo(selectedTournage) : null;
+	$: statusInfo = selectedTournage && currentTime ? getStatusInfo(selectedTournage) : null;
+	$: timingInfo = selectedTournage && currentTime ? getTimingInfo(selectedTournage) : null;
 	$: {
 		if (selectedTournage) {
 			pageTitle = `${selectedTournage.name} - ${data.appName}`;
@@ -31,12 +44,12 @@
 
 	// Vérifier si le passage a commencé
 	$: passageStarted = selectedTournage?.start_time
-		? new Date(selectedTournage.start_time) <= new Date()
+		? new Date(selectedTournage.start_time) <= currentTime
 		: false;
 
 	// Vérifier si le passage est terminé
 	$: passageEnded = selectedTournage?.end_time
-		? new Date(selectedTournage.end_time) < new Date()
+		? new Date(selectedTournage.end_time) < currentTime
 		: false;
 
 	$: uploadDisabled =
@@ -105,31 +118,43 @@
 		if (days) parts.push(`${days}j`);
 		if (hours) parts.push(`${hours}h`);
 		if (minutes) parts.push(`${minutes}m`);
-		if (!parts.length) parts.push(`${seconds}s`);
+		parts.push(`${seconds}s`);
 
-		return parts.slice(0, 2).join(' ');
+		if (days) return `${days}j ${hours}h ${minutes}m ${seconds}s`;
+		if (hours) return `${hours}h ${minutes}m ${seconds}s`;
+		if (minutes) return `${minutes}m ${seconds}s`;
+		return `${seconds}s`;
+	}
+
+	function formatClockTime(ms) {
+		const absMs = Math.max(0, Math.abs(ms));
+		const totalSeconds = Math.floor(absMs / 1000);
+		const hours = Math.floor(totalSeconds / 3600);
+		const minutes = Math.floor((totalSeconds % 3600) / 60);
+		const seconds = totalSeconds % 60;
+
+		return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 	}
 
 	function getTimingInfo(t) {
 		const start = t.start_time ? new Date(t.start_time) : null;
 		const end = t.end_time ? new Date(t.end_time) : null;
 		if (!start || !end) {
-			return { text: 'Planning non défini' };
+			return { text: 'Planning non défini', clockTime: null };
 		}
 
-		const now = new Date();
-		const toStart = start.getTime() - now.getTime();
-		const toEnd = end.getTime() - now.getTime();
+		const toStart = start.getTime() - currentTime.getTime();
+		const toEnd = end.getTime() - currentTime.getTime();
 
 		if (toStart > 0) {
-			return { text: `Commence dans ${formatDuration(toStart)}` };
+			return { text: `Commence dans ${formatDuration(toStart)}`, clockTime: null };
 		}
 
-		if (now >= start && now <= end) {
-			return { text: `Il reste ${formatDuration(toEnd)}` };
+		if (currentTime >= start && currentTime <= end) {
+			return { text: `Il reste ${formatDuration(toEnd)}`, clockTime: formatClockTime(toEnd) };
 		}
 
-		return { text: `Terminé il y a ${formatDuration(-toEnd)}` };
+		return { text: `Terminé il y a ${formatDuration(-toEnd)}`, clockTime: null };
 	}
 </script>
 
@@ -736,6 +761,62 @@
 					<div class="col-sm-6 col-lg-3">
 						<div class="card">
 							<div class="card-body">
+								<div class="ribbon ribbon-top {passageEnded ? 'bg-success' : passageStarted ? 'bg-primary' : 'bg-info'}">
+									{#if passageEnded}
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											class="icon icon-tabler icons-tabler-filled icon-tabler-circle-check"
+											><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+												d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-1.293 5.953a1 1 0 0 0 -1.32 -.083l-.094 .083l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.403 1.403l.083 .094l2 2l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z"
+											/></svg
+										>
+									{:else}
+										<svg
+											xmlns="http://www.w3.org/2000/svg"
+											width="24"
+											height="24"
+											viewBox="0 0 24 24"
+											fill="currentColor"
+											class="icon icon-tabler icons-tabler-filled icon-tabler-clock"
+											><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path
+												d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-5 2.66a1 1 0 0 0 -.993 .883l-.007 .117v5l.009 .131a1 1 0 0 0 .197 .477l.087 .1l3 3l.094 .082a1 1 0 0 0 1.226 0l.094 -.083l.083 -.094a1 1 0 0 0 0 -1.226l-.083 -.094l-2.707 -2.708v-4.585l-.007 -.117a1 1 0 0 0 -.993 -.883z"
+											/></svg
+										>
+									{/if}
+								</div>
+								<div class="subheader">Temps restant</div>
+								<div class="d-flex align-items-baseline mb-2">
+									<div class="h1 mb-0 me-2">
+										{#if passageEnded}
+											<span class="text-success">Terminé</span>
+										{:else if passageStarted}
+											{timingInfo?.text || 'En cours'}
+										{:else}
+											{timingInfo?.text || 'À venir'}
+										{/if}
+									</div>
+								</div>
+								<div class="text-secondary mt-2">
+									{#if passageEnded}
+										Passage terminé : vous serez tenu au courant de la sortie de la vidéo.
+									{:else if passageStarted}
+										Votre passage est en cours, n'oubliez pas de rendre votre projet !
+									{:else if selectedTournage?.start_time}
+										Votre passage commence le {formatDateTime(selectedTournage.start_time)}
+									{:else}
+										Planning non défini pour ce tournage.
+									{/if}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-sm-6 col-lg-3">
+						<div class="card">
+							<div class="card-body">
 								<div class="ribbon ribbon-top bg-danger">
 									<svg
 										xmlns="http://www.w3.org/2000/svg"
@@ -909,7 +990,7 @@
 												Récap de fin
 											</button>
 										</li>
-										<li class="nav-item">
+										<li class="nav-item d-none">
 											<button
 												class="nav-link"
 												class:active={activeTab === 'faq'}
@@ -937,7 +1018,7 @@
 								</div>
 								<div
 									class="card-body"
-									style="display: flex; flex-direction: column; min-height: 600px; flex: 1;"
+									style="display: flex; flex-direction: column; flex: 1;"
 								>
 									<div
 										class="tab-content"
@@ -985,16 +1066,6 @@
 																		Du {formatDateTime(selectedTournage.start_time)} au {formatDateTime(
 																			selectedTournage.end_time
 																		)}
-																	</div>
-																</div>
-																<div class="mb-3">
-																	<div class="subheader">Statut</div>
-																	<div class="mt-2">
-																		{#if statusInfo}
-																			<span class="badge {statusInfo.color}"
-																				>{statusInfo.label}</span
-																			>
-																		{/if}
 																	</div>
 																</div>
 																{#if timingInfo}
