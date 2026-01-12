@@ -4,12 +4,12 @@ import crypto from 'crypto';
 import { redirect } from '@sveltejs/kit';
 import {
     DISCORD_CLIENT_ID,
-    DISCORD_CLIENT_SECRET,
-    DISCORD_REDIRECT_URI
+    DISCORD_CLIENT_SECRET
 } from '$env/static/private';
 
 export const GET = async ({ url, cookies }) => {
     const code = url.searchParams.get('code');
+    const redirectUri = `${url.origin}/auth/discord/callback`;
 
     // 1️⃣ Token Discord
     const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
@@ -22,7 +22,7 @@ export const GET = async ({ url, cookies }) => {
             client_secret: DISCORD_CLIENT_SECRET,
             grant_type: 'authorization_code',
             code,
-            redirect_uri: DISCORD_REDIRECT_URI
+            redirect_uri: redirectUri
         })
     });
 
