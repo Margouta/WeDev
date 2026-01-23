@@ -44,14 +44,21 @@ ORDER BY t.created_at DESC, p.start_time ASC;
     tournages.push(row);
   });
 
-  // Pour chaque tournage, récupérer le rendu du passage précédent
+  // Pour chaque tournage, récupérer le rendu du passage précédent non-absent
   for (const tournage of tournages) {
     if (tournage.passage_number > 1) {
+      // Chercher le premier passage avant celui-ci qui a un rendu ET n'est pas absent
       const [prevRows] = await db.query(
         `SELECT rendu FROM passage 
-         WHERE tournages_id = ? AND status = 'submitted'
-         ORDER BY start_time ASC LIMIT ?, 1`,
-        [tournage.id, tournage.passage_number - 2]
+         WHERE tournages_id = ? 
+         AND status IN ('submitted', 'pending')
+         AND start_time < (
+           SELECT start_time FROM passage 
+           WHERE tournages_id = ? AND discord_id = ?
+         )
+         ORDER BY start_time DESC
+         LIMIT 1`,
+        [tournage.id, tournage.id, locals.user.discord_id]
       );
       if (prevRows && prevRows.length > 0 && prevRows[0].rendu) {
         tournage.previous_rendu = prevRows[0].rendu;

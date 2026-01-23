@@ -37,7 +37,6 @@ export const GET = async ({ url, cookies }) => {
     });
 
     const discordUser = await userRes.json();
-    console.log(discordUser);
 
     // 3️⃣ Upsert user
     const displayName = discordUser.global_name ?? discordUser.username;

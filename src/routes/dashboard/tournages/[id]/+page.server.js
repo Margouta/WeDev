@@ -1,5 +1,21 @@
 import { redirect, error, fail } from '@sveltejs/kit';
 import { db } from '$lib/server/db';
+import { google } from 'googleapis';
+import { DRIVESA_EMAIL, DRIVESA_PRIVATE_KEY } from '$env/static/private';
+
+// Construit un client JWT Google Drive avec clé normalisée
+function buildDriveAuth() {
+  const normalizedKey = DRIVESA_PRIVATE_KEY?.replace(/\r/g, '\n').replace(/\\n/g, '\n').trim();
+  if (!normalizedKey || !normalizedKey.includes('BEGIN PRIVATE KEY')) {
+    throw new Error('Clé privée Google Drive invalide ou manquante');
+  }
+  return new google.auth.JWT({
+    email: DRIVESA_EMAIL,
+    key: normalizedKey,
+    // Scope complet pour accéder/supprimer des fichiers d'un shared drive
+    scopes: ['https://www.googleapis.com/auth/drive']
+  });
+}
 
 export const load = async ({ locals, params }) => {
   if (!locals.user || locals.user.rank !== 'Administrateur') {
@@ -33,6 +49,42 @@ export const load = async ({ locals, params }) => {
     passages
   };
 };
+
+// Fonction utilitaire pour supprimer un fichier de Google Drive
+async function deleteFromGoogleDrive(fileUrl) {
+  try {
+    const fileIdMatch = fileUrl.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (!fileIdMatch) {
+      console.warn('Impossible d\'extraire l\'ID du fichier de l\'URL:', fileUrl);
+      return false;
+    }
+
+    const fileId = fileIdMatch[1];
+    const auth = buildDriveAuth();
+    const drive = google.drive({ version: 'v3', auth });
+
+    try {
+      await drive.files.delete({ fileId, supportsAllDrives: true });
+      console.log('Fichier supprimé de Drive:', fileId);
+      return true;
+    } catch (deleteError) {
+      const msg = deleteError?.errors?.[0]?.message || deleteError.message || '';
+      if (msg.includes('File not found')) {
+        console.warn('Fichier introuvable (peut-être déjà supprimé):', fileId);
+        return false;
+      }
+      if (msg.includes('insufficient permissions') || msg.includes('not have sufficient permissions')) {
+        console.error('Permissions Drive insuffisantes pour supprimer le fichier:', msg);
+        return false;
+      }
+      console.error('Erreur lors de la suppression du fichier Drive:', msg);
+      return false;
+    }
+  } catch (driveError) {
+    console.warn('Erreur lors de la suppression du fichier Drive:', driveError.message);
+    return false;
+  }
+}
 
 export const actions = {
     bulkAdd: async ({ request, params }) => {
@@ -75,6 +127,15 @@ export const actions = {
         if (!id) return fail(400, { missingId: true });
 
         try {
+            // Récupérer le passage pour vérifier s'il a un rendu
+            const [rows] = await db.query('SELECT rendu FROM passage WHERE id = ?', [id]);
+            
+            if (rows && rows.length > 0 && rows[0].rendu) {
+                // Si le passage a un rendu, supprimer le fichier de Google Drive
+                await deleteFromGoogleDrive(rows[0].rendu);
+            }
+
+            // Ensuite supprimer le passage
             await db.query('DELETE FROM passage WHERE id = ?', [id]);
             return { success: true };
         } catch (e) {
